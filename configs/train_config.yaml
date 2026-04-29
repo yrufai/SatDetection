@@ -1,0 +1,31 @@
+# ============================================================
+# SatDetection — Training Configuration
+# ============================================================
+
+# Model: pretrained=true → Model B (ImageNet), false → Model A (random init)
+pretrained: false
+
+# Data paths
+landcoverai_root: data/landcoverai/tiles   # path to tiled .npy patches
+
+# Tiling settings (used by tiling script, not training)
+tile_size: 256
+stride: 256   # set to 512 for fewer tiles and faster iteration
+
+# Training
+lr: 0.0001
+epochs: 50
+batch_size: 8       # reduce to 4 on Mac if memory is tight
+num_workers: 2      # set to 0 on Mac (MPS + multiprocessing can conflict)
+early_stopping_patience: 5
+
+# Loss weights (road weight higher to fight class imbalance)
+w_building: 1.0
+w_road: 2.0
+
+# Checkpoints and outputs
+checkpoint_dir: checkpoints
+visuals_dir: outputs/visuals
+
+# W&B
+wandb_project: SatDetection

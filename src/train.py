@@ -118,7 +118,7 @@ def train(config):
 
     optimizer = torch.optim.Adam(model.parameters(), lr=config["lr"])
     scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
-        optimizer, mode="max", patience=2, factor=0.5, verbose=True
+        optimizer, mode="max", patience=2, factor=0.5
     )
 
     best_iou        = 0.0

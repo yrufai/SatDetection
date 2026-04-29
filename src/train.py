@@ -31,8 +31,10 @@ def dice_loss(pred, target, smooth=1.0):
 
 
 def focal_loss(pred, target, alpha=0.25, gamma=2.0):
-    bce = F.binary_cross_entropy(pred, target, reduction="none")
-    pt  = torch.exp(-bce)
+    # clip predictions for numerical stability
+    pred = pred.clamp(1e-6, 1 - 1e-6)
+    bce  = F.binary_cross_entropy(pred, target, reduction="none")
+    pt   = torch.exp(-bce)
     return (alpha * (1 - pt) ** gamma * bce).mean()
 
 
@@ -66,6 +68,7 @@ def train_one_epoch(model, loader, optimizer, device, w_building, w_road):
         preds = model(images)
         loss  = combined_loss(preds, masks, w_building=w_building, w_road=w_road)
         loss.backward()
+        torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
         optimizer.step()
 
         total_loss += loss.item()

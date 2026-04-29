@@ -54,22 +54,48 @@ def tile_landcoverai(image_path, mask_path, out_dir, tile_size=256, stride=256):
 
 def tile_all(image_dir, mask_dir, out_dir, tile_size=256, stride=256):
     """
-    Tile all GeoTIFF pairs in image_dir / mask_dir.
-    Assumes filenames match between image and mask directories.
+    Tile all LandCover.ai GeoTIFF pairs.
+
+    LandCover.ai naming convention:
+      image: M-33-20-C-c-3-4.tif
+      mask:  M-33-20-C-c-3-4_m.tif
+
+    Supports two layouts:
+      Layout A — separate dirs: image_dir/X.tif + mask_dir/X_m.tif
+      Layout B — same dir:      image_dir/X.tif + image_dir/X_m.tif
     """
     import glob
-    image_files = sorted(glob.glob(os.path.join(image_dir, "*.tif")))
-    mask_files  = sorted(glob.glob(os.path.join(mask_dir,  "*.tif")))
 
-    assert len(image_files) == len(mask_files), \
-        f"Mismatch: {len(image_files)} images vs {len(mask_files)} masks"
+    all_tifs    = sorted(glob.glob(os.path.join(image_dir, "*.tif")))
+    image_files = [f for f in all_tifs if not f.endswith("_m.tif")]
 
-    total = 0
-    for img_path, msk_path in zip(image_files, mask_files):
+    if len(image_files) == 0:
+        raise FileNotFoundError(
+            f"No image .tif files found in: {image_dir}\n"
+            f"Make sure LandCover.ai images are uploaded to Drive."
+        )
+
+    pairs = []
+    for img_path in image_files:
+        stem     = os.path.splitext(os.path.basename(img_path))[0]
+        mask_name = f"{stem}_m.tif"
+
+        # try mask_dir first, then same dir as image
+        msk_path = os.path.join(mask_dir, mask_name)
+        if not os.path.exists(msk_path):
+            msk_path = os.path.join(image_dir, mask_name)
+        if not os.path.exists(msk_path):
+            print(f"  Warning: no mask found for {stem}, skipping")
+            continue
+        pairs.append((img_path, msk_path))
+
+    print(f"Found {len(pairs)} image/mask pairs")
+
+    for img_path, msk_path in pairs:
         n = tile_landcoverai(img_path, msk_path, out_dir, tile_size=tile_size, stride=stride)
-        print(f"  {os.path.basename(img_path)} -> {n} tiles (running total: {n})")
-        total = n  # tile_landcoverai returns running count
+        print(f"  {os.path.basename(img_path)} -> {n} total tiles so far")
 
+    total = len(os.listdir(os.path.join(out_dir, "images")))
     print(f"\nTotal tiles saved: {total}")
     return total
 

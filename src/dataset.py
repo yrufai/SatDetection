@@ -94,25 +94,29 @@ def build_dataloaders(config):
     """
     Build train/val/test DataLoaders from LandCover.ai tiles.
     Split: 70% train / 15% val / 15% test.
+
+    Uses three separate dataset instances so setting val augment=False
+    does not affect the train instance (they would share state otherwise).
     """
-    root       = config["landcoverai_root"]
-    batch_size = config["batch_size"]
+    from torch.utils.data import Subset
+
+    root        = config["landcoverai_root"]
+    batch_size  = config["batch_size"]
     num_workers = config.get("num_workers", 2)
 
-    full_dataset = SatDataset(root=root, train=True)
-    n = len(full_dataset)
+    n = len(SatDataset(root=root, train=False))
     n_train = int(0.70 * n)
     n_val   = int(0.15 * n)
     n_test  = n - n_train - n_val
 
-    train_ds, val_ds, test_ds = random_split(
-        full_dataset, [n_train, n_val, n_test],
-        generator=torch.Generator().manual_seed(42)
-    )
+    indices   = torch.randperm(n, generator=torch.Generator().manual_seed(42)).tolist()
+    train_idx = indices[:n_train]
+    val_idx   = indices[n_train:n_train + n_val]
+    test_idx  = indices[n_train + n_val:]
 
-    # disable augmentation for val and test
-    val_ds.dataset.augment  = None
-    test_ds.dataset.augment = None
+    train_ds = Subset(SatDataset(root=root, train=True),  train_idx)
+    val_ds   = Subset(SatDataset(root=root, train=False), val_idx)
+    test_ds  = Subset(SatDataset(root=root, train=False), test_idx)
 
     train_loader = DataLoader(train_ds, batch_size=batch_size, shuffle=True,
                               num_workers=num_workers, pin_memory=True)

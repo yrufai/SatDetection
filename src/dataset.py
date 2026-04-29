@@ -39,9 +39,23 @@ class SatDataset(Dataset):
         self.train = train
 
         image_dir = os.path.join(root, "images")
+
+        if not os.path.exists(image_dir):
+            raise FileNotFoundError(
+                f"Tiles directory not found: {image_dir}\n"
+                f"Run the tiling step in Section 6 of the notebook first."
+            )
+
         self.image_files = sorted([
             f for f in os.listdir(image_dir) if f.endswith(".npy")
         ])
+
+        if len(self.image_files) == 0:
+            raise ValueError(
+                f"No .npy tiles found in: {image_dir}\n"
+                f"The tiling step may have failed or saved files to a different path.\n"
+                f"Check that tiles exist at: {image_dir}"
+            )
 
         self.augment = get_augmentation_pipeline(train)
         self.normalize = A.Normalize(

@@ -2,6 +2,7 @@ from PIL import Image
 from pathlib import Path
 from torchgeo.datasets import LandCoverAI
 import matplotlib.pyplot as plt
+import numpy as np
 
 # tile 512x512 images into 4 256x256 images and save to disk
 def save_tiling():
@@ -30,7 +31,6 @@ def save_tiling():
 
 # rescale dataset images to [0, 1] for clipping
 def clippingRescale(img):
-  print(str((img.max() - img.min())))
   return (img - img.min()) / (img.max() - img.min())
 
 # view an nxn image
@@ -39,6 +39,8 @@ def preview_img(dataset, idx):
     img = dataset[idx][0].permute(1, 2, 0).numpy()
     msk = dataset[idx][1].numpy()
     print(img.shape)
+    print(msk.shape)
+    print(np.max(msk), np.min(msk))
     img = clippingRescale(img)
     # msk = clippingRescale(msk)
 

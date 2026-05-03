@@ -4,6 +4,7 @@ from SegModel import SegModel
 import img_helpers
 import torch
 
+# road = 4, water = 3, wd = 2, building = 1, background = 0
 img_helpers.save_tiling()
 
 # load LandCover.ai dataset
@@ -12,6 +13,8 @@ dataset = SegDataset(
     mask_dir='data/tiles/masks',
 )
 
+for i in range(2, 15):
+    img_helpers.preview_img(dataset, i)
 
 model = None
 load_model = False
@@ -32,6 +35,6 @@ else:
 seg_model = SegModel(EPOCHS=30, BATCH_SIZE=32, NUM_CLASSES=5, 
                      model=model, dataset=dataset)
 
-# seg_model.train(train_split=0.15, val_split=0.15, saved_model_name='best_model_untrained')
-# seg_model.test()
+seg_model.train(train_split=0.15, val_split=0.15, saved_model_name='best_model_untrained')
+seg_model.test()
 seg_model.load_example(90)

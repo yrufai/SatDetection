@@ -32,9 +32,11 @@ class DecoderBlock(nn.Module):
 
 
 class UNetResNet50(nn.Module):
-    def __init__(self, num_classes=5):
+    def __init__(self, num_classes=5, pretrained=False):
         super().__init__()
-        bb = resnet50(weights=ResNet50_Weights.DEFAULT)
+        if pretrained:
+            bb = resnet50(weights=ResNet50_Weights.DEFAULT)
+        bb = resnet50()
 
         self.enc0 = nn.Sequential(bb.conv1, bb.bn1, bb.relu)  # [B, 64,  128, 128]
         self.pool = bb.maxpool

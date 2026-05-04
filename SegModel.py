@@ -10,11 +10,11 @@ from pathlib import Path
 
 
 class SegModel():
-    def __init__(self, EPOCHS, BATCH_SIZE, NUM_CLASSES, model, dataset):
+    def __init__(self, EPOCHS, BATCH_SIZE, NUM_CLASSES, model, dataset, DEVICE):
         self.EPOCHS = EPOCHS
         self.BATCH_SIZE = BATCH_SIZE
         self.NUM_CLASSES = NUM_CLASSES
-        self.DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
+        self.DEVICE = DEVICE
         self.dataset = dataset
         self.model = model
         self.model.to(self.DEVICE)
